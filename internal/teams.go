@@ -44,6 +44,31 @@ type Team struct {
 	Website     string   `json:"website"`
 }
 
+type TeamSingleReturn struct {
+	Success bool       `json:"success"`
+	Data    TeamSingle `json:"data"`
+}
+
+type TeamSingle struct {
+	CaptainID   int      `json:"captain_id"`
+	Hidden      bool     `json:"hidden"`
+	Country     string   `json:"country"`
+	Created     string   `json:"created"`
+	Affiliation string   `json:"affiliation"`
+	Name        string   `json:"name"`
+	Bracket     string   `json:"bracket"`
+	Members     []int    "members"
+	Website     string   `json:"website"`
+	ID          int      `json:"id"`
+	Email       string   `json:"email"`
+	Secret      string   `json:"secret"`
+	Fields      []string `json:"fields"`
+	Banned      bool     `json:"banned"`
+	OauthID     int      `json:"oauth_id"`
+	Place       string   `json:"place"`
+	Score       int      `json:"score"`
+}
+
 func getTeams(apiKey string, apiEndpoint string) []Team {
 	// Create a new HTTP request with the Authorization header
 	req, err := http.NewRequest("GET", apiEndpoint+"/teams", nil)
@@ -71,6 +96,33 @@ func getTeams(apiKey string, apiEndpoint string) []Team {
 	return teams.Data
 }
 
+func getTeam(apiKey string, apiEndpoint string, teamID int) TeamSingle {
+	// Create a new HTTP request with the Authorization header
+	req, err := http.NewRequest("GET", apiEndpoint+"/teams/"+string(teamID), nil)
+	if err != nil {
+		panic(err)
+	}
+	req.Header.Set("Authorization", "Token "+apiKey)
+	req.Header.Set("Content-Type", "application/json")
+
+	// Send the HTTP request and retrieve the response
+	client := http.DefaultClient
+	resp, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+
+	// bodyBytes, err := io.ReadAll(resp.Body)
+	// bodyString := string(bodyBytes)
+	// fmt.Println(bodyString)
+
+	var team TeamSingleReturn
+	err = json.NewDecoder(resp.Body).Decode(&team)
+
+	return team.Data
+}
+
 func countTeams(apiKey string, apiEndpoint string) {
 	go func() {
 		for range Ticker.C {
@@ -89,13 +141,20 @@ var (
 	})
 )
 
-// func solvedTeams(apiKey string, apiEndpoint string) {
-// 	go func() {
-// 		teams := getTeams(apiKey, apiEndpoint)
+func solvedTeams(apiKey string, apiEndpoint string) {
+	go func() {
+		teams := getTeams(apiKey, apiEndpoint)
 
-// 		for _, team := range teams {
+		for _, team := range teams {
+			tasksSolved.With(prometheus.Labels{"name": team.Name}).Set(float64(team.Solved))
+		}
 
-// 		}
+	}()
+}
 
-// 	}
-// }
+var (
+	tasksSolved = promauto.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "ctfd_tasks_solved",
+		Help: "Number of tasks solved per team",
+	}, []string{"name"})
+)
