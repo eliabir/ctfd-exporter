@@ -3,19 +3,31 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 )
 
-type Challenge struct {
-	ID          int    `json:"id"`
-	Name        string `json:"name"`
-	Category    string `json:"category"`
-	Description string `json:"description"`
+type ChallengeReturn struct {
+	Success bool        `json:"success"`
+	Data    []Challenge `json:"data"`
 }
 
-func getChallenges(apiKey string, apiEndpoint string) Challenge {
+type Challenge struct {
+	ID           int      `json:"id"`
+	Type         string   `json:"type"`
+	Name         string   `json:"name"`
+	Value        int      `json:"value"`
+	Solves       int      `json:"solves"`
+	Solved_by_me string   `json:"solved_by_me"`
+	Category     string   `json:"category"`
+	Tags         []string `json:"tags"`
+	Template     string   `json:"template"`
+	Script       string   `json:"script"`
+}
+
+func getChallenges(apiKey string, apiEndpoint string) []Challenge {
 
 	// Create a new HTTP request with the Authorization header
 	req, err := http.NewRequest("GET", apiEndpoint+"/challenges", nil)
@@ -33,21 +45,24 @@ func getChallenges(apiKey string, apiEndpoint string) Challenge {
 	}
 	defer resp.Body.Close()
 
-	var challenges Challenge
+	var challenges ChallengeReturn
 	err = json.NewDecoder(resp.Body).Decode(&challenges)
 
-	return challenges
+	return challenges.Data
 }
 
-// func countChallenges(apiKey string, apiEndpoint string) {
-// 	go func() {
+func countChallenges(apiKey string, apiEndpoint string) {
+	go func() {
+		for {
+			challenges := getChallenges(apiKey, apiEndpoint)
 
-// 		fmt.Printf(challenges["name"])
+			challengesCount := len(challenges)
+			challengesTotal.Set(float64(challengesCount))
 
-// 		challengesCount := len(challenges)
-// 		challengesTotal.Set(float64(challengesCount))
-// 	}()
-// }
+			time.Sleep(5 * time.Second)
+		}
+	}()
+}
 
 var (
 	challengesTotal = promauto.NewGauge(prometheus.GaugeOpts{
