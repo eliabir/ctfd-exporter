@@ -2,9 +2,7 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
@@ -75,15 +73,11 @@ func getTeams(apiKey string, apiEndpoint string) []Team {
 
 func countTeams(apiKey string, apiEndpoint string) {
 	go func() {
-		for {
+		for range Ticker.C {
 			teams := getTeams(apiKey, apiEndpoint)
-
-			fmt.Println(teams[1].Name)
 
 			teamsCount := len(teams)
 			teamsTotal.Set(float64(teamsCount))
-
-			time.Sleep(5 * time.Second)
 		}
 	}()
 }
@@ -94,3 +88,14 @@ var (
 		Help: "The total number of teams",
 	})
 )
+
+// func solvedTeams(apiKey string, apiEndpoint string) {
+// 	go func() {
+// 		teams := getTeams(apiKey, apiEndpoint)
+
+// 		for _, team := range teams {
+
+// 		}
+
+// 	}
+// }

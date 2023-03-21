@@ -53,7 +53,7 @@ func getChallenges(apiKey string, apiEndpoint string) []Challenge {
 
 func countChallenges(apiKey string, apiEndpoint string) {
 	go func() {
-		for {
+		for range Ticker.C {
 			challenges := getChallenges(apiKey, apiEndpoint)
 
 			challengesCount := len(challenges)
