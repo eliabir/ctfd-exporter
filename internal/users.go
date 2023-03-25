@@ -79,3 +79,24 @@ var (
 		Help: "The total number of registered users",
 	})
 )
+
+func scoreUser(scoreboardC chan ScoreboardReturn) {
+	go func() {
+		for {
+			teams := <-scoreboardC
+
+			for _, team := range teams.Data {
+				for _, user := range team.Members {
+					userScore.With(prometheus.Labels{"name": user.Name}).Set(float64(user.Score))
+				}
+			}
+		}
+	}()
+}
+
+var (
+	userScore = promauto.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "ctfd_user_score",
+		Help: "Score per user",
+	}, []string{"name"})
+)
