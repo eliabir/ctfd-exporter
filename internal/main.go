@@ -41,6 +41,7 @@ func main() {
 	countUsers(usersC)
 	countTeams(teamsC)
 	countChallenges(challengesC)
+	getSolvesChallenges(challengesC)
 	countScoreboardTeams(scoreboardC)
 	scoreTeams(scoreboardC)
 	scoreUser(scoreboardC)

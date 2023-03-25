@@ -48,10 +48,6 @@ func getScoreboard(apiKey string, apiEndpoint string) ScoreboardReturn {
 	}
 	defer resp.Body.Close()
 
-	// bodyBytes, err := io.ReadAll(resp.Body)
-	// bodyString := string(bodyBytes)
-	// fmt.Println(bodyString)
-
 	var scoreboard ScoreboardReturn
 	err = json.NewDecoder(resp.Body).Decode(&scoreboard)
 

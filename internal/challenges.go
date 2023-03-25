@@ -57,6 +57,10 @@ func countChallenges(challengesC chan ChallengeReturn) {
 
 			challengesCount := len(challenges.Data)
 			challengesTotal.Set(float64(challengesCount))
+
+			// for _, challenge := range challenges.Data {
+			// 	solvesChallenges.With(prometheus.Labels{"name": challenge.Name}).Set(float64(challenge.Solves))
+			// }
 		}
 	}()
 }
@@ -66,4 +70,23 @@ var (
 		Name: "ctfd_challenges_total",
 		Help: "The total number of challenges",
 	})
+)
+
+func getSolvesChallenges(challengesC chan ChallengeReturn) {
+	go func() {
+		for {
+			challenges := <-challengesC
+
+			for _, challenge := range challenges.Data {
+				solvesChallenges.With(prometheus.Labels{"name": challenge.Name}).Set(float64(challenge.Solves))
+			}
+		}
+	}()
+}
+
+var (
+	solvesChallenges = promauto.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "ctfd_challenge_solves",
+		Help: "The amount of solves per challenge",
+	}, []string{"name"})
 )
