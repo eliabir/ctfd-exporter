@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
@@ -57,10 +58,6 @@ func countChallenges(challengesC chan ChallengeReturn) {
 
 			challengesCount := len(challenges.Data)
 			challengesTotal.Set(float64(challengesCount))
-
-			// for _, challenge := range challenges.Data {
-			// 	solvesChallenges.With(prometheus.Labels{"name": challenge.Name}).Set(float64(challenge.Solves))
-			// }
 		}
 	}()
 }
@@ -78,7 +75,12 @@ func getSolvesChallenges(challengesC chan ChallengeReturn) {
 			challenges := <-challengesC
 
 			for _, challenge := range challenges.Data {
-				solvesChallenges.With(prometheus.Labels{"name": challenge.Name}).Set(float64(challenge.Solves))
+				solvesChallenges.With(prometheus.Labels{
+					"id":       strconv.Itoa(challenge.ID),
+					"name":     challenge.Name,
+					"category": challenge.Category,
+					"value":    strconv.Itoa(challenge.Value),
+				}).Set(float64(challenge.Solves))
 			}
 		}
 	}()
@@ -88,5 +90,5 @@ var (
 	solvesChallenges = promauto.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "ctfd_challenge_solves",
 		Help: "The amount of solves per challenge",
-	}, []string{"name"})
+	}, []string{"id", "name", "category", "value"})
 )
