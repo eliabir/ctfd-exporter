@@ -87,10 +87,6 @@ func getTeams(apiKey string, apiEndpoint string) TeamReturn {
 	}
 	defer resp.Body.Close()
 
-	// bodyBytes, err := io.ReadAll(resp.Body)
-	// bodyString := string(bodyBytes)
-	// fmt.Println(bodyString)
-
 	var teams TeamReturn
 	err = json.NewDecoder(resp.Body).Decode(&teams)
 
@@ -140,7 +136,7 @@ var (
 
 func scoreTeams(scoreboardC chan ScoreboardReturn) {
 	go func() {
-		for range Ticker.C {
+		for {
 			teams := <-scoreboardC
 
 			for _, team := range teams.Data {

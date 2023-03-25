@@ -60,10 +60,12 @@ func getScoreboard(apiKey string, apiEndpoint string) ScoreboardReturn {
 
 func countScoreboardTeams(scoreboardC chan ScoreboardReturn) {
 	go func() {
-		scoreboard := <-scoreboardC
+		for {
+			scoreboard := <-scoreboardC
 
-		scoreboardTeamsCount := len(scoreboard.Data)
-		scoreboardTeams.Set(float64(scoreboardTeamsCount))
+			scoreboardTeamsCount := len(scoreboard.Data)
+			scoreboardTeams.Set(float64(scoreboardTeamsCount))
+		}
 	}()
 }
 

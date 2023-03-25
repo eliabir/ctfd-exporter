@@ -64,7 +64,7 @@ func getUsers(apiKey string, apiEndpoint string) UserReturn {
 
 func countUsers(usersC chan UserReturn) {
 	go func() {
-		for range Ticker.C {
+		for {
 			users := <-usersC
 
 			usersCount := users.Meta.Pagination.Total
