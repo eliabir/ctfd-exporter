@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
@@ -65,5 +66,52 @@ var (
 	challengesTotal = promauto.NewGauge(prometheus.GaugeOpts{
 		Name: "ctfd_challenges_total",
 		Help: "The total number of challenges",
+	})
+)
+
+func getSolvesChallenges(challengesC chan ChallengeReturn) {
+	go func() {
+		for {
+			challenges := <-challengesC
+
+			for _, challenge := range challenges.Data {
+				solvesChallenges.With(prometheus.Labels{
+					"id":       strconv.Itoa(challenge.ID),
+					"name":     challenge.Name,
+					"category": challenge.Category,
+					"value":    strconv.Itoa(challenge.Value),
+				}).Set(float64(challenge.Solves))
+			}
+		}
+	}()
+}
+
+var (
+	solvesChallenges = promauto.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "ctfd_challenge_solves",
+		Help: "The amount of solves per challenge",
+	}, []string{"id", "name", "category", "value"})
+)
+
+func getTotalPoints(challengesC chan ChallengeReturn) {
+	go func() {
+		for {
+			challenges := <-challengesC
+
+			var totalPoints int
+
+			for _, challenge := range challenges.Data {
+				totalPoints += challenge.Value
+			}
+
+			totalPointsChallenges.Set(float64(totalPoints))
+		}
+	}()
+}
+
+var (
+	totalPointsChallenges = promauto.NewGauge(prometheus.GaugeOpts{
+		Name: "ctfd_challenges_total_points",
+		Help: "The total amount of avalable points",
 	})
 )
