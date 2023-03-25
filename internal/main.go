@@ -29,6 +29,7 @@ func main() {
 	countScoreboardTeams(apiKey, apiEndpoint)
 	scoreTeams(apiKey, apiEndpoint)
 	countUsers(apiKey, apiEndpoint)
+	scoreUser(apiKey, apiEndpoint)
 
 	http.Handle("/metrics", promhttp.Handler())
 	http.ListenAndServe(":2112", nil)
