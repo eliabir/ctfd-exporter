@@ -20,12 +20,12 @@ type TeamMeta struct {
 }
 
 type TeamPagination struct {
-	Page    bool   `json:"page"`
-	Next    string `json:"next"`
-	Prev    string `json:"prev"`
-	Pages   int    `json:"pages"`
-	PerPage int    `json:"per_page"`
-	Total   int    `json:"total"`
+	Page    int `json:"page"`
+	Next    int `json:"next"`
+	Prev    int `json:"prev"`
+	Pages   int `json:"pages"`
+	PerPage int `json:"per_page"`
+	Total   int `json:"total"`
 }
 
 type Team struct {
