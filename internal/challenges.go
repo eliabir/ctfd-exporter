@@ -92,3 +92,26 @@ var (
 		Help: "The amount of solves per challenge",
 	}, []string{"id", "name", "category", "value"})
 )
+
+func getTotalPoints(challengesC chan ChallengeReturn) {
+	go func() {
+		for {
+			challenges := <-challengesC
+
+			var totalPoints int
+
+			for _, challenge := range challenges.Data {
+				totalPoints += challenge.Value
+			}
+
+			totalPointsChallenges.Set(float64(totalPoints))
+		}
+	}()
+}
+
+var (
+	totalPointsChallenges = promauto.NewGauge(prometheus.GaugeOpts{
+		Name: "ctfd_challenges_total_points",
+		Help: "The total amount of avalable points",
+	})
+)
