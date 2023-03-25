@@ -43,6 +43,7 @@ func main() {
 	countChallenges(challengesC)
 	countScoreboardTeams(scoreboardC)
 	scoreTeams(scoreboardC)
+	scoreUser(scoreboardC)
 
 	http.Handle("/metrics", promhttp.Handler())
 	http.ListenAndServe(":2112", nil)

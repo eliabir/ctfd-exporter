@@ -80,10 +80,10 @@ var (
 	})
 )
 
-func scoreUser(apiKey string, apiEndpoint string) {
+func scoreUser(scoreboardC chan ScoreboardReturn) {
 	go func() {
-		for range Ticker.C {
-			teams := getScoreboard(apiKey, apiEndpoint)
+		for {
+			teams := <-scoreboardC
 
 			for _, team := range teams.Data {
 				for _, user := range team.Members {
