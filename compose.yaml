@@ -1,0 +1,10 @@
+services:
+  ctfd-exporter:
+    image: ctfd-exporter
+    build: .
+    environment:
+      CTFD_API: $CTFD_API
+    ports:
+      - 2112:2112
+    restart: unless-stopped
+    
