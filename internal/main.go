@@ -24,11 +24,25 @@ func main() {
 	// Create ticker for every second
 	Ticker = time.NewTicker(1 * time.Second)
 
-	countChallenges(apiKey, apiEndpoint)
-	countTeams(apiKey, apiEndpoint)
-	countScoreboardTeams(apiKey, apiEndpoint)
-	scoreTeams(apiKey, apiEndpoint)
-	countUsers(apiKey, apiEndpoint)
+	usersC := make(chan UserReturn)
+	teamsC := make(chan TeamReturn)
+	scoreboardC := make(chan ScoreboardReturn)
+	challengesC := make(chan ChallengeReturn)
+
+	go func() {
+		for range Ticker.C {
+			usersC <- getUsers(apiKey, apiEndpoint)
+			teamsC <- getTeams(apiKey, apiEndpoint)
+			scoreboardC <- getScoreboard(apiKey, apiEndpoint)
+			challengesC <- getChallenges(apiKey, apiEndpoint)
+		}
+	}()
+
+	countUsers(usersC)
+	countTeams(teamsC)
+	countChallenges(challengesC)
+	countScoreboardTeams(scoreboardC)
+	scoreTeams(scoreboardC)
 
 	http.Handle("/metrics", promhttp.Handler())
 	http.ListenAndServe(":2112", nil)

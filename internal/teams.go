@@ -70,7 +70,7 @@ type TeamSingle struct {
 	Score       int      `json:"score"`
 }
 
-func getTeams(apiKey string, apiEndpoint string) []Team {
+func getTeams(apiKey string, apiEndpoint string) TeamReturn {
 	// Create a new HTTP request with the Authorization header
 	req, err := http.NewRequest("GET", apiEndpoint+"/teams", nil)
 	if err != nil {
@@ -94,7 +94,7 @@ func getTeams(apiKey string, apiEndpoint string) []Team {
 	var teams TeamReturn
 	err = json.NewDecoder(resp.Body).Decode(&teams)
 
-	return teams.Data
+	return teams
 }
 
 func getTeam(apiKey string, apiEndpoint string, teamID int) TeamSingle {
@@ -120,12 +120,12 @@ func getTeam(apiKey string, apiEndpoint string, teamID int) TeamSingle {
 	return team.Data
 }
 
-func countTeams(apiKey string, apiEndpoint string) {
+func countTeams(teamsC chan TeamReturn) {
 	go func() {
-		for range Ticker.C {
-			teams := getTeams(apiKey, apiEndpoint)
+		for {
+			teams := <-teamsC
 
-			teamsCount := len(teams)
+			teamsCount := len(teams.Data)
 			teamsTotal.Set(float64(teamsCount))
 		}
 	}()
@@ -138,10 +138,10 @@ var (
 	})
 )
 
-func scoreTeams(apiKey string, apiEndpoint string) {
+func scoreTeams(scoreboardC chan ScoreboardReturn) {
 	go func() {
 		for range Ticker.C {
-			teams := getScoreboard(apiKey, apiEndpoint)
+			teams := <-scoreboardC
 
 			for _, team := range teams.Data {
 				teamScore.With(prometheus.Labels{"name": team.Name}).Set(float64(team.Score))
