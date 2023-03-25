@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
@@ -57,7 +58,7 @@ type TeamSingle struct {
 	Affiliation string   `json:"affiliation"`
 	Name        string   `json:"name"`
 	Bracket     string   `json:"bracket"`
-	Members     []int    "members"
+	Members     []int    `json:"members"`
 	Website     string   `json:"website"`
 	ID          int      `json:"id"`
 	Email       string   `json:"email"`
@@ -98,7 +99,7 @@ func getTeams(apiKey string, apiEndpoint string) []Team {
 
 func getTeam(apiKey string, apiEndpoint string, teamID int) TeamSingle {
 	// Create a new HTTP request with the Authorization header
-	req, err := http.NewRequest("GET", apiEndpoint+"/teams/"+string(teamID), nil)
+	req, err := http.NewRequest("GET", apiEndpoint+"/teams/"+strconv.Itoa(teamID), nil)
 	if err != nil {
 		panic(err)
 	}
@@ -112,10 +113,6 @@ func getTeam(apiKey string, apiEndpoint string, teamID int) TeamSingle {
 		panic(err)
 	}
 	defer resp.Body.Close()
-
-	// bodyBytes, err := io.ReadAll(resp.Body)
-	// bodyString := string(bodyBytes)
-	// fmt.Println(bodyString)
 
 	var team TeamSingleReturn
 	err = json.NewDecoder(resp.Body).Decode(&team)
@@ -137,24 +134,25 @@ func countTeams(apiKey string, apiEndpoint string) {
 var (
 	teamsTotal = promauto.NewGauge(prometheus.GaugeOpts{
 		Name: "ctfd_teams_total",
-		Help: "The total number of teams",
+		Help: "The total number of registered teams",
 	})
 )
 
-func solvedTeams(apiKey string, apiEndpoint string) {
+func scoreTeams(apiKey string, apiEndpoint string) {
 	go func() {
-		teams := getTeams(apiKey, apiEndpoint)
+		for range Ticker.C {
+			teams := getScoreboard(apiKey, apiEndpoint)
 
-		for _, team := range teams {
-			tasksSolved.With(prometheus.Labels{"name": team.Name}).Set(float64(team.Solved))
+			for _, team := range teams.Data {
+				teamScore.With(prometheus.Labels{"name": team.Name}).Set(float64(team.Score))
+			}
 		}
-
 	}()
 }
 
 var (
-	tasksSolved = promauto.NewGaugeVec(prometheus.GaugeOpts{
-		Name: "ctfd_tasks_solved",
-		Help: "Number of tasks solved per team",
+	teamScore = promauto.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "ctfd_team_score",
+		Help: "Score per team",
 	}, []string{"name"})
 )
