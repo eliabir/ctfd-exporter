@@ -18,6 +18,10 @@ func main() {
 	apiEndpoint := "https://ctf.uia.no/api/v1"
 
 	countChallenges(apiKey, apiEndpoint)
+	countTeams(apiKey, apiEndpoint)
+	countScoreboardTeams(apiKey, apiEndpoint)
+	scoreTeams(apiKey, apiEndpoint)
+	countUsers(apiKey, apiEndpoint)
 
 	http.Handle("/metrics", promhttp.Handler())
 	http.ListenAndServe(":2112", nil)

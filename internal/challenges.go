@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"net/http"
-	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
@@ -27,7 +26,7 @@ type Challenge struct {
 	Script       string   `json:"script"`
 }
 
-func getChallenges(apiKey string, apiEndpoint string) []Challenge {
+func getChallenges(apiKey string, apiEndpoint string) ChallengeReturn {
 
 	// Create a new HTTP request with the Authorization header
 	req, err := http.NewRequest("GET", apiEndpoint+"/challenges", nil)
@@ -48,7 +47,7 @@ func getChallenges(apiKey string, apiEndpoint string) []Challenge {
 	var challenges ChallengeReturn
 	err = json.NewDecoder(resp.Body).Decode(&challenges)
 
-	return challenges.Data
+	return challenges
 }
 
 func countChallenges(apiKey string, apiEndpoint string) {
@@ -56,10 +55,8 @@ func countChallenges(apiKey string, apiEndpoint string) {
 		for {
 			challenges := getChallenges(apiKey, apiEndpoint)
 
-			challengesCount := len(challenges)
+			challengesCount := len(challenges.Data)
 			challengesTotal.Set(float64(challengesCount))
-
-			time.Sleep(5 * time.Second)
 		}
 	}()
 }
