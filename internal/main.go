@@ -4,9 +4,13 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
+
+// Global ticker
+var Ticker *time.Ticker
 
 func main() {
 	// Get CTFd api token
@@ -17,7 +21,11 @@ func main() {
 
 	apiEndpoint := "https://ctf.uia.no/api/v1"
 
+	// Create ticker for every second
+	Ticker = time.NewTicker(1 * time.Second)
+
 	countChallenges(apiKey, apiEndpoint)
+	countTeams(apiKey, apiEndpoint)
 
 	http.Handle("/metrics", promhttp.Handler())
 	http.ListenAndServe(":2112", nil)

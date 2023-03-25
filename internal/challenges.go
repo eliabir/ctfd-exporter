@@ -15,16 +15,16 @@ type ChallengeReturn struct {
 }
 
 type Challenge struct {
-	ID           int      `json:"id"`
-	Type         string   `json:"type"`
-	Name         string   `json:"name"`
-	Value        int      `json:"value"`
-	Solves       int      `json:"solves"`
-	Solved_by_me string   `json:"solved_by_me"`
-	Category     string   `json:"category"`
-	Tags         []string `json:"tags"`
-	Template     string   `json:"template"`
-	Script       string   `json:"script"`
+	ID         int      `json:"id"`
+	Type       string   `json:"type"`
+	Name       string   `json:"name"`
+	Value      int      `json:"value"`
+	Solves     int      `json:"solves"`
+	SolvedByMe string   `json:"solved_by_me"`
+	Category   string   `json:"category"`
+	Tags       []string `json:"tags"`
+	Template   string   `json:"template"`
+	Script     string   `json:"script"`
 }
 
 func getChallenges(apiKey string, apiEndpoint string) []Challenge {
@@ -53,7 +53,7 @@ func getChallenges(apiKey string, apiEndpoint string) []Challenge {
 
 func countChallenges(apiKey string, apiEndpoint string) {
 	go func() {
-		for {
+		for range Ticker.C {
 			challenges := getChallenges(apiKey, apiEndpoint)
 
 			challengesCount := len(challenges)
