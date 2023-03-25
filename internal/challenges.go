@@ -50,10 +50,10 @@ func getChallenges(apiKey string, apiEndpoint string) ChallengeReturn {
 	return challenges
 }
 
-func countChallenges(apiKey string, apiEndpoint string) {
+func countChallenges(challengesC chan ChallengeReturn) {
 	go func() {
-		for range Ticker.C {
-			challenges := getChallenges(apiKey, apiEndpoint)
+		for {
+			challenges := <-challengesC
 
 			challengesCount := len(challenges.Data)
 			challengesTotal.Set(float64(challengesCount))
