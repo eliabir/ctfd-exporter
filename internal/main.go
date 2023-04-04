@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -13,13 +14,22 @@ import (
 var Ticker *time.Ticker
 
 func main() {
-	// Get CTFd api token
+	// Get CTFd API token
 	apiKey := os.Getenv("CTFD_API")
 	if apiKey == "" {
 		log.Fatalln("Could not retrieve API token from environment variable")
 	}
 
-	apiEndpoint := "https://ctf.uia.no/api/v1"
+	// Get CTFd URL
+	ctfdUrl := os.Getenv("CTFD_URL")
+	if ctfdUrl == "" {
+		log.Fatalln("Could not retrieve CTFd URL from environment variable")
+	}
+
+	// Remove trailing /
+	ctfdUrl = strings.TrimSuffix(ctfdUrl, "/")
+
+	apiEndpoint := ctfdUrl + "/api/v1"
 
 	// Create ticker for every second
 	Ticker = time.NewTicker(1 * time.Second)
