@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -32,8 +33,20 @@ func main() {
 	// Build API URL
 	apiEndpoint := ctfdUrl + "/api/v1"
 
-	// Create ticker for every second
-	Ticker = time.NewTicker(1 * time.Second)
+	// Get polling rate
+	pollingRateStr := os.Getenv("POLL_RATE")
+	if pollingRateStr == "" {
+		log.Fatalln("Could not retrieve polling rate from environment variable")
+	}
+
+	// Convert polling rate to int
+	pollingRate, err := strconv.Atoi(pollingRateStr)
+	if err != nil {
+		log.Fatalln("Could not convert polling rate from string to int")
+	}
+
+	// Create ticker with interval from polling rate
+	Ticker = time.NewTicker(time.Duration(pollingRate) * time.Second)
 
 	usersC := make(chan UserReturn)
 	teamsC := make(chan TeamReturn)
