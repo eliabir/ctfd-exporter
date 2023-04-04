@@ -28,6 +28,7 @@ func main() {
 	teamsC := make(chan TeamReturn)
 	scoreboardC := make(chan ScoreboardReturn)
 	challengesC := make(chan ChallengeReturn)
+	submissionsC := make(chan []SubmissionReturn)
 
 	go func() {
 		for range Ticker.C {
@@ -35,6 +36,7 @@ func main() {
 			teamsC <- getTeams(apiKey, apiEndpoint)
 			scoreboardC <- getScoreboard(apiKey, apiEndpoint)
 			challengesC <- getChallenges(apiKey, apiEndpoint)
+			submissionsC <- getSubmissionsAll(apiKey, apiEndpoint)
 		}
 	}()
 
@@ -46,6 +48,7 @@ func main() {
 	countScoreboardTeams(scoreboardC)
 	scoreTeams(scoreboardC)
 	scoreUser(scoreboardC)
+	countSubmissions(submissionsC)
 
 	http.Handle("/metrics", promhttp.Handler())
 	http.ListenAndServe(":2112", nil)
