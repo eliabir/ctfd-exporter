@@ -166,6 +166,8 @@ func countSubmissions(submissionC chan []SubmissionReturn) {
 
 			submissionsMap := make(map[string]Submission)
 
+			var uniqueIPsSlice []string
+
 			var submissionSolvesCount float64
 			var submissionFailsCount float64
 
@@ -188,6 +190,8 @@ func countSubmissions(submissionC chan []SubmissionReturn) {
 							Fails:    submissionsMap[challengeName].Fails + 1,
 						}
 					}
+
+					if _, ok := 
 				}
 			}
 
@@ -264,4 +268,11 @@ var (
 		Name: "ctfd_submission_fails",
 		Help: "Amount of incorrect submissions per task",
 	}, []string{"name"})
+)
+
+var (
+	uniqueIPs = promauto.NewGauge(prometheus.GaugeOpts{
+		Name: "ctfd_unique_ips",
+		Help: "Amount of unique IPs that have submitted flags",
+	})
 )
