@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -60,59 +59,59 @@ type SubmissionUser struct {
 	Name string `json:"name"`
 }
 
-func getSubmissions(apiKey string, apiEndpoint string) SubmissionReturn {
+// func getSubmissions(apiKey string, apiEndpoint string) SubmissionReturn {
 
-	// Create a new HTTP request with the Authorization header
-	req, err := http.NewRequest("GET", apiEndpoint+"/submissions", nil)
-	if err != nil {
-		panic(err)
-	}
-	req.Header.Set("Authorization", "Token "+apiKey)
-	req.Header.Set("Content-Type", "application/json")
+// 	// Create a new HTTP request with the Authorization header
+// 	req, err := http.NewRequest("GET", apiEndpoint+"/submissions", nil)
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	req.Header.Set("Authorization", "Token "+apiKey)
+// 	req.Header.Set("Content-Type", "application/json")
 
-	// Send the HTTP request and retrieve the response
-	client := http.DefaultClient
-	resp, err := client.Do(req)
-	if err != nil {
-		panic(err)
-	}
-	defer resp.Body.Close()
+// 	// Send the HTTP request and retrieve the response
+// 	client := http.DefaultClient
+// 	resp, err := client.Do(req)
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	defer resp.Body.Close()
 
-	var submissions SubmissionReturn
-	err = json.NewDecoder(resp.Body).Decode(&submissions)
-	if err != nil {
-		panic(err)
-	}
+// 	var submissions SubmissionReturn
+// 	err = json.NewDecoder(resp.Body).Decode(&submissions)
+// 	if err != nil {
+// 		panic(err)
+// 	}
 
-	pages_total := submissions.Meta.Pagination.Pages
-	per_page := submissions.Meta.Pagination.PerPage
-	submissions_total := per_page * pages_total
+// 	pages_total := submissions.Meta.Pagination.Pages
+// 	per_page := submissions.Meta.Pagination.PerPage
+// 	submissions_total := per_page * pages_total
 
-	fmt.Println(submissions_total)
+// 	fmt.Println(submissions_total)
 
-	// Create a new HTTP request with the Authorization header
-	req, err = http.NewRequest("GET", apiEndpoint+"/submissions?per_page="+strconv.Itoa(submissions_total), nil)
-	if err != nil {
-		panic(err)
-	}
-	req.Header.Set("Authorization", "Token "+apiKey)
-	req.Header.Set("Content-Type", "application/json")
+// 	// Create a new HTTP request with the Authorization header
+// 	req, err = http.NewRequest("GET", apiEndpoint+"/submissions?per_page="+strconv.Itoa(submissions_total), nil)
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	req.Header.Set("Authorization", "Token "+apiKey)
+// 	req.Header.Set("Content-Type", "application/json")
 
-	// Send the HTTP request and retrieve the response
-	client = http.DefaultClient
-	resp, err = client.Do(req)
-	if err != nil {
-		panic(err)
-	}
-	defer resp.Body.Close()
+// 	// Send the HTTP request and retrieve the response
+// 	client = http.DefaultClient
+// 	resp, err = client.Do(req)
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	defer resp.Body.Close()
 
-	err = json.NewDecoder(resp.Body).Decode(&submissions)
-	if err != nil {
-		panic(err)
-	}
+// 	err = json.NewDecoder(resp.Body).Decode(&submissions)
+// 	if err != nil {
+// 		panic(err)
+// 	}
 
-	return submissions
-}
+// 	return submissions
+// }
 
 func getSubmissionsAll(apiKey string, apiEndpoint string) []SubmissionReturn {
 	var allSubmissions []SubmissionReturn
@@ -174,10 +173,6 @@ func countSubmissions(submissionC chan []SubmissionReturn) {
 				for _, submission := range submissions.Data {
 					challengeName := submission.Challenge.Name
 
-					// if _, ok := submissionsMap[challengeName]; !ok {
-					// 	submissionsMap[challengeName] = Submission{Category: submission.Challenge.Category, Solves: 0, Fails: 0}
-					// }
-
 					if submission.Type == "correct" {
 						submissionSolvesCount++
 						submissionsMap[challengeName] = Submission{
@@ -209,32 +204,32 @@ func countSubmissions(submissionC chan []SubmissionReturn) {
 	}()
 }
 
-func countSubmissionsOld(submissionsC chan []SubmissionReturn) {
-	go func() {
-		for {
-			submissionsAll := <-submissionsC
+// func countSubmissionsOld(submissionsC chan []SubmissionReturn) {
+// 	go func() {
+// 		for {
+// 			submissionsAll := <-submissionsC
 
-			submissionsTotal.Set(float64(submissionsAll[0].Meta.Pagination.Total))
+// 			submissionsTotal.Set(float64(submissionsAll[0].Meta.Pagination.Total))
 
-			var submissionsSolvesCount int = 0
-			var submissionsFailsCount int = 0
+// 			var submissionsSolvesCount int = 0
+// 			var submissionsFailsCount int = 0
 
-			for _, submissions := range submissionsAll {
-				for _, submission := range submissions.Data {
-					if submission.Type == "correct" {
-						submissionsSolvesCount++
-					} else {
-						submissionsFailsCount++
-					}
+// 			for _, submissions := range submissionsAll {
+// 				for _, submission := range submissions.Data {
+// 					if submission.Type == "correct" {
+// 						submissionsSolvesCount++
+// 					} else {
+// 						submissionsFailsCount++
+// 					}
 
-				}
-			}
+// 				}
+// 			}
 
-			submissionsSolves.Set(float64(submissionsSolvesCount))
-			submissionsFails.Set(float64(submissionsFailsCount))
-		}
-	}()
-}
+// 			submissionsSolves.Set(float64(submissionsSolvesCount))
+// 			submissionsFails.Set(float64(submissionsFailsCount))
+// 		}
+// 	}()
+// }
 
 var (
 	submissionsTotal = promauto.NewGauge(prometheus.GaugeOpts{
