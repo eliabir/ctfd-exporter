@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -79,17 +80,48 @@ func getSubmissions(apiKey string, apiEndpoint string) SubmissionReturn {
 
 	var submissions SubmissionReturn
 	err = json.NewDecoder(resp.Body).Decode(&submissions)
+	if err != nil {
+		panic(err)
+	}
+
+	pages_total := submissions.Meta.Pagination.Pages
+	per_page := submissions.Meta.Pagination.PerPage
+	submissions_total := per_page * pages_total
+
+	fmt.Println(submissions_total)
+
+	// Create a new HTTP request with the Authorization header
+	req, err = http.NewRequest("GET", apiEndpoint+"/submissions?per_page="+strconv.Itoa(submissions_total), nil)
+	if err != nil {
+		panic(err)
+	}
+	req.Header.Set("Authorization", "Token "+apiKey)
+	req.Header.Set("Content-Type", "application/json")
+
+	// Send the HTTP request and retrieve the response
+	client = http.DefaultClient
+	resp, err = client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+
+	err = json.NewDecoder(resp.Body).Decode(&submissions)
+	if err != nil {
+		panic(err)
+	}
 
 	return submissions
 }
 
 func getSubmissionsAll(apiKey string, apiEndpoint string) []SubmissionReturn {
 	var allSubmissions []SubmissionReturn
+	per_page := 100
 	page := 1
 
 	for {
 		// Create a new HTTP request with the Authorization header
-		req, err := http.NewRequest("GET", apiEndpoint+"/submissions"+"?page="+strconv.Itoa(page), nil)
+		req, err := http.NewRequest("GET", apiEndpoint+"/submissions"+"?per_page="+strconv.Itoa(per_page)+"&page="+strconv.Itoa(page), nil)
 		if err != nil {
 			panic(err)
 		}
@@ -106,6 +138,9 @@ func getSubmissionsAll(apiKey string, apiEndpoint string) []SubmissionReturn {
 
 		var submissions SubmissionReturn
 		err = json.NewDecoder(resp.Body).Decode(&submissions)
+		if err != nil {
+			panic(err)
+		}
 
 		allSubmissions = append(allSubmissions, submissions)
 
@@ -119,17 +154,62 @@ func getSubmissionsAll(apiKey string, apiEndpoint string) []SubmissionReturn {
 	return allSubmissions
 }
 
-func countSubmissionsSmall(submissionC chan SubmissionReturn) {
+func countSubmissions(submissionC chan []SubmissionReturn) {
 	go func() {
 		for {
 			submissions := <-submissionC
 
-			submissionsTotal.Set(float64(submissions.Meta.Pagination.Total))
+			type Submission struct {
+				Category string
+				Solves   int
+				Fails    int
+			}
+
+			submissionsMap := make(map[string]Submission)
+
+			var submissionSolvesCount float64
+			var submissionFailsCount float64
+
+			for _, submissions := range submissions {
+				for _, submission := range submissions.Data {
+					challengeName := submission.Challenge.Name
+
+					// if _, ok := submissionsMap[challengeName]; !ok {
+					// 	submissionsMap[challengeName] = Submission{Category: submission.Challenge.Category, Solves: 0, Fails: 0}
+					// }
+
+					if submission.Type == "correct" {
+						submissionSolvesCount++
+						submissionsMap[challengeName] = Submission{
+							Category: submission.Challenge.Category,
+							Solves:   submissionsMap[challengeName].Solves + 1,
+							Fails:    submissionsMap[challengeName].Fails,
+						}
+					} else if submission.Type == "incorrect" {
+						submissionFailsCount++
+						submissionsMap[challengeName] = Submission{
+							Category: submission.Challenge.Category,
+							Solves:   submissionsMap[challengeName].Solves,
+							Fails:    submissionsMap[challengeName].Fails + 1,
+						}
+					}
+				}
+			}
+
+			submissionsTotal.Set(float64(submissions[0].Meta.Pagination.Total))
+			submissionsSolves.Set(float64(submissionSolvesCount))
+			submissionsFails.Set(float64(submissionFailsCount))
+
+			for name, submission := range submissionsMap {
+				submissionSolves.With(prometheus.Labels{"name": name}).Set(float64(submission.Solves))
+				submissionFails.With(prometheus.Labels{"name": name}).Set(float64(submission.Fails))
+			}
+
 		}
 	}()
 }
 
-func countSubmissions(submissionsC chan []SubmissionReturn) {
+func countSubmissionsOld(submissionsC chan []SubmissionReturn) {
 	go func() {
 		for {
 			submissionsAll := <-submissionsC
@@ -146,6 +226,7 @@ func countSubmissions(submissionsC chan []SubmissionReturn) {
 					} else {
 						submissionsFailsCount++
 					}
+
 				}
 			}
 
@@ -174,4 +255,18 @@ var (
 		Name: "ctfd_submissions_fails_total",
 		Help: "Amount of incorrect submissions",
 	})
+)
+
+var (
+	submissionSolves = promauto.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "ctfd_submission_solves",
+		Help: "Amount of correct submissions per task",
+	}, []string{"name"})
+)
+
+var (
+	submissionFails = promauto.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "ctfd_submission_fails",
+		Help: "Amount of incorrect submissions per task",
+	}, []string{"name"})
 )
