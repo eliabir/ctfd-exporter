@@ -4,6 +4,7 @@ services:
     build: .
     environment:
       CTFD_API: $CTFD_API
+      CTFD_URL: $CTFD_URL
     ports:
       - 2112:2112
     restart: unless-stopped
