@@ -29,6 +29,7 @@ func main() {
 	// Remove trailing /
 	ctfdUrl = strings.TrimSuffix(ctfdUrl, "/")
 
+	// Build API URL
 	apiEndpoint := ctfdUrl + "/api/v1"
 
 	// Create ticker for every second
