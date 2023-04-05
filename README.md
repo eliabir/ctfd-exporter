@@ -72,7 +72,7 @@ The exporter provides the following metrics:
   * Type: Gauge
 
 * `ctfd_unique_ips`: Number of unique IPs that have submitted flags
-    * Type: Gauge
+  * Type: Gauge
 
 * `ctfd_user_score`: Score per user
   * Labels:
