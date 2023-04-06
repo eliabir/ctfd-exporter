@@ -79,7 +79,6 @@ func getSolvesChallenges(challengesC chan ChallengeReturn) {
 					"id":       strconv.Itoa(challenge.ID),
 					"name":     challenge.Name,
 					"category": challenge.Category,
-					"value":    strconv.Itoa(challenge.Value),
 				}).Set(float64(challenge.Solves))
 			}
 		}
@@ -90,7 +89,7 @@ var (
 	solvesChallenges = promauto.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "ctfd_challenge_solves",
 		Help: "The amount of solves per challenge",
-	}, []string{"id", "name", "category", "value"})
+	}, []string{"id", "name", "category"})
 )
 
 func getTotalPoints(challengesC chan ChallengeReturn) {
