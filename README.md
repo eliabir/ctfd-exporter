@@ -2,6 +2,11 @@
 
 Prometheus exporter for CTFd metrics written in Go.
 
+## Images
+
+Example of a Grafana dashboard using the exporter from TG:Hack 23.
+
+![Example of Grafana dashboard using the exporter from TG:Hack 23](https://i.imgur.com/oquNMJU.png "Example of Grafana dashboard using the exporter from TG:Hack 23")
 
 ## Prerequisites
 
