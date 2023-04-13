@@ -1,10 +1,10 @@
 services:
   ctfd-exporter:
-    image: ctfd-exporter
-    build: .
+    image: ghcr.io/eliabir/ctfd-exporter:latest
     environment:
       CTFD_API: $CTFD_API
       CTFD_URL: $CTFD_URL
+      POLL_RATE: $POLL_RATE
     ports:
       - 2112:2112
     restart: unless-stopped
