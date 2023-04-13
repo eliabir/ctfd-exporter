@@ -1,0 +1,5 @@
+*.env
+README.md
+compose.yaml
+Dockerfile*
+bin/
